@@ -13,30 +13,21 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          lfs: true
       - name: Configure Git
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-      - name: Setup Git LFS
+      - name: Remove .github and PNG files temporarily
         run: |
-          curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-          sudo apt-get install git-lfs
-          git lfs install
-      - name: Configure LFS for specific file types
-        run: |
-          git lfs track "*.png"
-          git lfs track "*.ttf"
-          git add .gitattributes
-      - name: Clean and re-add all files
-        run: |
-          git rm -rf --cached .
-          git add .
-      - name: Commit changes
-        run: |
-          git commit -m "Update repository and configure Git LFS" || echo "No changes to commit"
-      - name: Push to hub
+          git rm -r --cached .github
+          git rm -r --cached "*.png"
+          git commit -m "Temporarily remove .github and PNG files for Hugging Face push"
+      - name: Push to Hugging Face hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           git push -f https://MakiAi:$HF_TOKEN@huggingface.co/spaces/MakiAi/pic-to-header main
+      - name: Restore original state
+        run: |
+          git reset HEAD~1
+          git checkout .
