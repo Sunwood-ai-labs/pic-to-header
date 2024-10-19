@@ -18,20 +18,25 @@ jobs:
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-          git config core.excludesFile .gitignore
-          echo "*.png" >> .gitignore
-          echo "*.ttf" >> .gitignore
-          echo ".github/" >> .gitignore
       - name: Setup Git LFS
         run: |
           curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
           sudo apt-get install git-lfs
           git lfs install
+      - name: Configure LFS for specific file types
+        run: |
+          git lfs track "*.png"
+          git lfs track "*.ttf"
+          git add .gitattributes
+      - name: Clean and re-add all files
+        run: |
+          git rm -rf --cached .
+          git add .
+      - name: Commit changes
+        run: |
+          git commit -m "Update repository and configure Git LFS" || echo "No changes to commit"
       - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git rm -r --cached .
-          git add .
-          git commit -m "Update repository and configure Git LFS" || echo "No changes to commit"
           git push -f https://MakiAi:$HF_TOKEN@huggingface.co/spaces/MakiAi/pic-to-header main
