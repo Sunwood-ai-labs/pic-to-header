@@ -17,17 +17,13 @@ jobs:
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-      - name: Remove .github and PNG files temporarily
+      - name: Remove .github and PNG files from history
         run: |
-          git rm -r --cached .github
-          git rm -r --cached "*.png"
-          git commit -m "Temporarily remove .github and PNG files for Hugging Face push"
+          git filter-branch --force --index-filter \
+          'git rm -rf --cached --ignore-unmatch .github *.png' \
+          --prune-empty --tag-name-filter cat -- --all
       - name: Push to Hugging Face hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           git push -f https://MakiAi:$HF_TOKEN@huggingface.co/spaces/MakiAi/pic-to-header main
-      - name: Restore original state
-        run: |
-          git reset HEAD~1
-          git checkout .
